@@ -1,0 +1,74 @@
+# Create a CodeBuild Project
+aws codebuild create-project \
+    --name "python-hello-world-build" \
+    --source '{
+        "type": "CODECOMMIT",
+        "location": "https://git-codecommit.region.amazonaws.com/v1/repos/your-repo-name",
+        "gitCloneDepth": 1,
+        "gitSubmodulesConfig": {
+            "fetchSubmodules": false
+        },
+        "buildspec": "buildspec.yml",
+        "insecureSsl": false
+    }' \
+    --artifacts '{
+        "type": "NO_ARTIFACTS"
+    }' \
+    --environment '{
+        "type": "LINUX_CONTAINER",
+        "image": "aws/codebuild/standard:5.0",
+        "computeType": "BUILD_GENERAL1_SMALL",
+        "environmentVariables": [],
+        "privilegedMode": false,
+        "imagePullCredentialsType": "CODEBUILD"
+    }' \
+    --service-role "arn:aws:iam::123456789012:role/service-role/CodeBuildServiceRole" \
+    --timeout-in-minutes 10 \
+    --queued-timeout-in-minutes 5 \
+    --logs-config '{
+        "cloudWatchLogs": {
+            "status": "ENABLED",
+            "groupName": "/aws/codebuild/python-hello-world-build"
+        },
+        "s3Logs": {
+            "status": "DISABLED"
+        }
+    }'
+
+
+  ###############################
+Replace:
+
+region with your AWS region
+
+your-repo-name with your CodeCommit repository name
+
+123456789012 with your AWS account ID
+
+The service role ARN with your CodeBuild service role ARN
+###############################################
+
+# Start a Build
+aws codebuild start-build --project-name python-hello-world-build
+# Get Build Status
+aws codebuild batch-get-builds --ids id-of-your-build
+# List Builds
+aws codebuild list-builds-for-project --project-name python-hello-world-build
+# Update the Project
+aws codebuild update-project --name python-hello-world-build \
+    --source '{
+        "type": "CODECOMMIT",
+        "location": "https://git-codecommit.region.amazonaws.com/v1/repos/your-repo-name",
+        "buildspec": "buildspec.yml"
+    }'
+
+# Notes
+# Make sure your IAM role has the proper permissions for CodeBuild to access your source repository and other AWS services.
+
+# The buildspec.yml assumes Python 3.9. Adjust the version as needed.
+
+# For production use, you might want to add test commands in the build phase.
+
+# If your project has dependencies, create a requirements.txt file and uncomment the pip install line in the buildspec.
+
+  
